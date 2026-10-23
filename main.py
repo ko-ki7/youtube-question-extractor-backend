@@ -5,6 +5,13 @@ import re
 import csv
 from fastapi.responses import StreamingResponse
 from io import StringIO
+import os
+from dotenv import load_dotenv
+from pydantic import BaseModel
+
+load_dotenv()  # .envファイルの読み込み
+
+
 
 app = FastAPI()
 app.add_middleware(
@@ -15,7 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-API_KEY = "AIzaSyA4reA-3GZggjtsIgzsTc-mfKhhupx6MaA"     # ここに自分のAPIキー
+class CommentRequest(BaseModel):
+    videoId: str
+    mode: str
+
+API_KEY = os.getenv("YOUTUBE_API_KEY")     # ここに自分のAPIキー
 VIDEO_ID = "3zdPyHTDR3M"    # 対象の動画ID
 
 def get_all_comments(api_key: str, video_id: str) -> list[str]:
@@ -67,14 +78,17 @@ def is_question_comment(text: str) -> bool:
     return any(re.search(p, text) for p in question_patterns)
 
 # 質問コメントの抽出
-@app.get("/comments")
-def get_comments(video_id: str):
+@app.post("/comments")
+def get_comments(req: CommentRequest):
+    video_id = req.videoId
+    mode = req.mode
+
     all_comments = get_all_comments(API_KEY, video_id)
-    question_comments = [c for c in all_comments if is_question_comment(c)]
+    filtered_comments = [c for c in all_comments if is_question_comment(c)]
 
     return {
-        "count": len(question_comments),
-        "comments": question_comments
+        "count": len(filtered_comments),
+        "comments": filtered_comments
     }
 
 
