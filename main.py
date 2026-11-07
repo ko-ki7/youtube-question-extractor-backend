@@ -106,8 +106,8 @@ def create_checkout_session(req: CreateCheckoutRequest):
                 }
             ],
             mode="payment",
-            success_url="http://localhost:5173?success=true&user_id=" + str(req.user_id),
-            cancel_url="http://localhost:5173?canceled=true",
+            success_url="https://youtube-question-extractor-frontend.vercel.app?success=true&user_id=" + str(req.user_id),
+            cancel_url="https://youtube-question-extractor-frontend.vercel.app?canceled=true",
             metadata={
                 "user_id": req.user_id
             }
