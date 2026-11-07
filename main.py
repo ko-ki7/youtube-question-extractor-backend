@@ -174,8 +174,10 @@ def get_comments(req: CommentRequest):
 
     all_comments = get_all_comments(API_KEY, req.videoId)
 
+    limited_comments = all_comments[:100]
+
     question_comments = extract_questions(
-        all_comments
+        limited_comments
     )
 
     return {
