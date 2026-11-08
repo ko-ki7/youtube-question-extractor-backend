@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from database import create_user, get_user_by_email, hash_password, verify_password
 from database import start_pro, is_pro_user
 from fastapi import Query
+from fastapi import HTTPException
 
 
 load_dotenv()  # .envファイルの読み込み
@@ -134,7 +135,7 @@ def register(user: UserRegister):
 def login(user: UserLogin):
     db_user = get_user_by_email(user.email)
     if not db_user or not verify_password(user.password, db_user["password_hash"]):
-        return {"error": "メールアドレスまたはパスワードが間違っています"}
+        raise HTTPException(status_code=401, detail="メールアドレスまたはパスワードが間違っています")
     
     return {
         "message": "ログイン成功",
