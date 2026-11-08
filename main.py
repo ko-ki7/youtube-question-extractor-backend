@@ -13,6 +13,7 @@ from database import init_db
 from contextlib import asynccontextmanager
 from database import create_user, get_user_by_email, hash_password, verify_password
 from database import start_pro, is_pro_user
+from fastapi import Query
 
 
 load_dotenv()  # .envファイルの読み込み
@@ -170,15 +171,19 @@ def check_pro(user_id: int):
 
 # 質問コメントの抽出
 @app.post("/comments")
-def get_comments(req: CommentRequest):
+def get_comments(req: CommentRequest, user_id: int = Query(None)):
 
     all_comments = get_all_comments(API_KEY, req.videoId)
 
-    limited_comments = all_comments[:100]
-
-    question_comments = extract_questions(
-        limited_comments
-    )
+    # Proかどうかで制限を変える
+    is_pro = False
+    if user_id:
+        is_pro = is_pro_user(user_id)
+    
+    max_comments = 1000 if is_pro else 100
+    limited_comments = all_comments[:max_comments]
+    
+    question_comments = extract_questions(limited_comments)
 
     return {
         "count": len(question_comments),
