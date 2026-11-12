@@ -15,6 +15,7 @@ from database import create_user, get_user_by_email, hash_password, verify_passw
 from database import start_pro, is_pro_user
 from fastapi import Query
 from fastapi import HTTPException
+from typing import Optional
 
 
 load_dotenv()  # .envファイルの読み込み
@@ -172,13 +173,13 @@ def check_pro(user_id: int):
 
 # 質問コメントの抽出
 @app.post("/comments")
-def get_comments(req: CommentRequest, user_id: int = Query(None)):
+def get_comments(req: CommentRequest, user_id: Optional[int] = Query(None)):
 
     all_comments = get_all_comments(API_KEY, req.videoId)
 
     # Proかどうかで制限を変える
     is_pro = False
-    if user_id:
+    if user_id is not None:
         is_pro = is_pro_user(user_id)
     
     max_comments = 1000 if is_pro else 100
