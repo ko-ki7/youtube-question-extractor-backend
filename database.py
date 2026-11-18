@@ -5,7 +5,7 @@ from typing import Optional
 import hashlib
 import secrets
 
-DB_PATH = Path("app.db")
+DB_PATH = Path("/data/app.db")
 
 def get_connection():
     """接続を取得（row_factoryで辞書風アクセス可能）"""
