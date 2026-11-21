@@ -65,13 +65,13 @@ VIDEO_ID = "3zdPyHTDR3M"    # 対象の動画ID
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") # Stripeの設定
 
-def get_all_comments(api_key: str, video_id: str) -> list[str]:
+def get_all_comments(api_key: str, video_id: str, max_comments: int = 1000) -> list[str]:
     youtube = build("youtube", "v3", developerKey=api_key)
 
     comments: list[str] = []
     next_page_token = None
 
-    while True:
+    while len(comments) < max_comments:
         request = youtube.commentThreads().list(
             part="snippet",
             videoId=video_id,
@@ -82,10 +82,12 @@ def get_all_comments(api_key: str, video_id: str) -> list[str]:
         response = request.execute()
 
         for item in response["items"]:
+            if len(comments) >= max_comments:
+                break
             text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
             comments.append(text)
 
-        if "nextPageToken" in response:
+        if "nextPageToken" in response and len(comments) < max_comments:
             next_page_token = response["nextPageToken"]
         else:
             break
@@ -183,9 +185,9 @@ def get_comments(req: CommentRequest, user_id: Optional[int] = Query(None)):
         is_pro = is_pro_user(user_id)
     
     max_comments = 1000 if is_pro else 100
-    limited_comments = all_comments[:max_comments]
+    all_comments = get_all_comments(API_KEY, req.videoId, max_comments=max_comments)
     
-    question_comments = extract_questions(limited_comments)
+    question_comments = extract_questions(all_comments)
 
     return {
         "count": len(question_comments),
